@@ -1,0 +1,167 @@
+#include "bh1750fvi.h"
+#include "i2c_2.h"
+#include "AD.h"
+//#include "file.h"
+#include "rtc.h"
+#include "math.h"
+
+
+
+BH1750_Data_t BH1750_struct_Data = {0,~0};
+
+
+typedef   unsigned char BYTE;
+BYTE BUF[8];
+
+unsigned char num;
+unsigned char a,b,sec,count;
+unsigned char ge,shi,bai,qian,wan;            //显示变量
+
+int dis_data,dis_data1;                       //变量
+
+void conversion(unsigned int temp_data)  //  数据转换出 个，十，百，千，万
+{
+    wan=temp_data/10000+0x30 ;
+    temp_data=temp_data%10000;   //取余运算
+    qian=temp_data/1000+0x30 ;
+    temp_data=temp_data%1000;    //取余运算
+    bai=temp_data/100+0x30   ;
+    temp_data=temp_data%100;     //取余运算
+    shi=temp_data/10+0x30    ;
+    temp_data=temp_data%10;      //取余运算
+    ge=temp_data+0x30;
+}
+
+void NOP()
+{
+    __nop();
+
+__nop();
+__nop();
+__nop();
+__nop();
+}
+
+void Delay(unsigned int i)
+{
+    unsigned int j,k;
+    for(j=i; j>0; j--)
+        for(k=110; k>0; k--);
+}
+
+void BH1750_Start()
+{
+    SDA=1;
+    NOP();
+    SCL=1;
+    NOP();
+    SDA=0;
+    NOP();
+    SCL=0;
+    NOP();
+}
+
+void BH1750_Stop()
+{
+    SDA=0;
+    NOP();
+    SCL=1;
+    NOP();
+    SDA=1;
+    NOP();
+}
+
+void BH1750_Write_Byte(unsigned char dat)
+{
+    unsigned char i,temp;
+    temp=dat;
+    for(i=0; i<8; i++)
+    {
+        temp=temp<<1;
+        SDA=CY;
+        NOP();
+        SCL=1;
+        NOP();
+        SCL=0;
+        NOP();
+    }
+    SDA=0;  //注意：以下6句不可少，否则读到的数据是不正常的，如00212等
+    NOP();
+    SCL=1;
+    NOP();
+    SCL=0;
+    NOP();
+}
+
+unsigned char BH1750_Read_Byte()
+{
+    unsigned char i,x=0;
+    SDA=1;
+    NOP();
+    for(i=0; i<8; i++)
+    {
+        x=x<<1;
+        SCL=1;
+        NOP();
+        x=x|SDA;
+        SCL=0;
+        NOP();
+    }
+    return x;
+}
+
+void Responds()
+{
+    SDA=0;
+    NOP();
+    SCL=1;
+    NOP();
+    SCL=0;
+    NOP();
+}
+
+void No_Responds()
+{
+    SDA=1;
+    NOP();
+    SCL=1;
+    NOP();
+    SCL=0;
+    NOP();
+}
+
+void Single_Write_BH1750(unsigned char reg_address)
+{
+    BH1750_Start();
+    BH1750_Write_Byte(0x46);
+//No_Responds();   //此语句不可少，否则返回的数值不会变化
+    BH1750_Write_Byte(reg_address);
+//No_Responds();   //此语句不可少，否则返回的数值不会变化，2016.10.12日加
+    BH1750_Stop();
+}
+
+void Multiple_Read_BH1750(void)
+{
+    unsigned char i;
+    BH1750_Start();
+    BH1750_Write_Byte(0x47);
+    for(i=0; i<2; i++)                    //连续读取2个地址数据，存储中BUF
+    {
+        BUF[i]=BH1750_Read_Byte();          //BUF[0]存储0x32地址中的数据
+        if (i == 1)
+        {
+            No_Responds();               //最后一个数据需要回NOACK
+        }
+        else
+        {
+            Responds();                //回应ACK
+        }
+    }
+    BH1750_Stop();                          //停止信号
+    Delay(5);
+}
+
+void BH1750_init()
+{
+    Single_Write_BH1750(0x01);
+}

@@ -1,0 +1,6 @@
+--cpu Cortex-M3 -g --apcs=interwork --pd "__MICROLIB SETA 1"
+-I E:\贝生医疗资料笔记本\活动记录仪（USB版本V2）\programe\Active_Rcord_V1\Project\RVMDK（uv5）\RTE
+-I D:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include
+-I D:\Keil_v5\ARM\CMSIS\Include
+--pd "__UVISION_VERSION SETA 514" --pd "STM32F10X_HD SETA 1"
+--list ..\..\listing\startup_stm32f10x_hd.lst --xref -o ..\..\output\startup_stm32f10x_hd.o --depend ..\..\output\startup_stm32f10x_hd.d "..\..\Libraries\CMSIS\startup\startup_stm32f10x_hd.s"

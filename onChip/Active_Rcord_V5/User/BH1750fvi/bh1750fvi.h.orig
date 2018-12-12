@@ -1,0 +1,59 @@
+#ifndef __BH1750_H
+#define __BH1750_H
+
+
+#include "machine_control.h"
+#include "file.h"
+#include "Environment.h"
+#define BH1750_ADDRESS 0x46     //器件地址
+
+/*
+器件地址说明：
+根据BH1750FVI-中文手册（第10页）所述：
+从属地址有2种形式，由ADDR端口决定。
+ADDR = "H" (ADDR ≥ 0.7VCC) -> "1011 100" ->  0b10111000 -> 0xB8
+ADDR = "L"（ADDR ≥ 0.3VCC）-> "0100 011" ->  0b01000110  -> 0x46
+*/
+
+typedef struct BH_data 
+	{           //BH1750数据类型
+    short int data;
+    volatile unsigned char run_flag;          //BH1750数据采集标志
+} BH1750_Data_t;
+
+
+//软件 取样  时间间隔
+#define   BH_SAMPLE_CYCLE  120   //没各200ms取一次数据
+#define   GET_BHDATA_CYCLE 1000  //实际需要得到活动数据周期1000ms
+
+
+extern BH1750_Data_t BH1750_struct_Data;
+void BH1750_init(void);
+void Collect_data_BH1750(BH1750_Data_t *Active_data, Environment_t * Envir_data,module_state* state);
+
+//void ActiveData_ToBuf(module_state*state,volatile create_flag *flag, volatile struct rtc_time *time, Active_File *file ,t_ADXL345_Data  *data_source,Environment*Envir_Data);
+//void ActiveData_ToBuf(char *path,module_state*state,volatile struct rtc_time *time, Active_File *file ,ADXL345_Data_t  *data_source,Environment_t *Envir_Data);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif
